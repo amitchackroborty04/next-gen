@@ -7,7 +7,7 @@ export default function HeroSection() {
   return (
     <section
       id="hero"
-      className="min-h-screen bg-black flex items-center justify-center relative overflow-hidden py-12"
+      className="min-h-screen bg-black flex items-center justify-center relative overflow-hidden py-8 lg:py-12"
     >
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-black" />
@@ -29,13 +29,13 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.4 }}
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 sm:mb-8 "
+          className="text-4xl sm:text-7xl md:text-6xl lg:text-7xl font-bold text-white mb-6 sm:mb-8 "
         >
           <div className="h-[60px] sm:h-[70px] md:h-[80px] lg:h-[70px] w-full flex items-center justify-center mb-2 sm:mb-4">
             <VideoText 
               fontSize={7.4} 
               src="https://cdn.magicui.design/ocean-small.webm"
-              className="w-full lg:w-[1000px]"
+              className="w-[400px] lg:w-[1000px]"
             >
               NextGen | Scale Your Brand
             </VideoText>

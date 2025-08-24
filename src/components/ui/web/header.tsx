@@ -3,7 +3,7 @@
 import { CoolMode } from "@/components/magicui/cool-mode"
 import { motion, AnimatePresence } from "framer-motion"
 import { Instagram, Linkedin, Menu, X } from "lucide-react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 
 interface HeaderProps {
   onNavigate: (section: string) => void
@@ -11,6 +11,7 @@ interface HeaderProps {
 
 export default function Header({ onNavigate }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isNavigating, setIsNavigating] = useState(false) // For debouncing
 
   const navItems = [
     { name: "Home", id: "hero" },
@@ -20,29 +21,34 @@ export default function Header({ onNavigate }: HeaderProps) {
     { name: "Contact-US", id: "contact" },
   ]
 
-  // Prevent body scrolling when mobile menu is open
+  // Prevent body background scrolling when mobile menu is open
   useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.style.overflow = "hidden"
     } else {
-      document.body.style.overflow = "auto"
+      setTimeout(() => {
+        document.body.style.overflow = "auto"
+      }, 300)
     }
-    // Cleanup on unmount
     return () => {
       document.body.style.overflow = "auto"
     }
   }, [isMobileMenuOpen])
 
-  const handleNavigate = (section: string) => {
+  // Debounced navigation handler
+  const handleNavigate = useCallback((section: string) => {
+    if (isNavigating) return // Prevent multiple rapid clicks
+    setIsNavigating(true)
     onNavigate(section)
     setIsMobileMenuOpen(false)
-  }
+    setTimeout(() => setIsNavigating(false), 1000) // Reset after 1s
+  }, [isNavigating, onNavigate])
 
   return (
     <motion.header
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.8, ease: "easeOut" }}
+      transition={{ duration: 0.6, ease: "easeOut" }} // Reduced duration for mobile
       className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b border-gray-800"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
@@ -53,6 +59,7 @@ export default function Header({ onNavigate }: HeaderProps) {
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
             className="cursor-pointer"
             onClick={() => handleNavigate("hero")}
+            onTouchStart={() => handleNavigate("hero")}
           >
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -68,18 +75,19 @@ export default function Header({ onNavigate }: HeaderProps) {
           <nav className="hidden lg:flex items-center space-x-6 xl:space-x-8">
             {navItems.map((item, index) => (
               <CoolMode key={index}>
-              <motion.button
-                key={item.id}
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 + index * 0.1 }}
-                whileHover={{ scale: 1.05, color: "#3B82F6" }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => handleNavigate(item.id)}
-                className="text-white hover:text-blue-400 transition-colors duration-300 font-medium text-sm xl:text-base"
-              >
-                {item.name}
-              </motion.button>
+                <motion.button
+                  key={item.id}
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 + index * 0.1 }}
+                  whileHover={{ scale: 1.05, color: "#3B82F6" }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleNavigate(item.id)}
+                  onTouchStart={() => handleNavigate(item.id)}
+                  className="text-white hover:text-blue-400 transition-colors duration-300 font-medium text-sm xl:text-base"
+                >
+                  {item.name}
+                </motion.button>
               </CoolMode>
             ))}
           </nav>
@@ -91,7 +99,7 @@ export default function Header({ onNavigate }: HeaderProps) {
               <motion.a
                 whileHover={{ scale: 1.2, rotate: 5 }}
                 whileTap={{ scale: 0.9 }}
-                href="https://instagram.com" // Replace with actual link
+                href="https://instagram.com"
                 className="text-blue-400 hover:text-blue-300 transition-colors"
               >
                 <Instagram size={18} className="sm:w-5 sm:h-5" />
@@ -99,7 +107,7 @@ export default function Header({ onNavigate }: HeaderProps) {
               <motion.a
                 whileHover={{ scale: 1.2, rotate: -5 }}
                 whileTap={{ scale: 0.9 }}
-                href="https://linkedin.com" // Replace with actual link
+                href="https://linkedin.com"
                 className="text-blue-400 hover:text-blue-300 transition-colors"
               >
                 <Linkedin size={18} className="sm:w-5 sm:h-5" />
@@ -109,6 +117,7 @@ export default function Header({ onNavigate }: HeaderProps) {
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              onTouchStart={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="lg:hidden text-white p-2"
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -117,6 +126,7 @@ export default function Header({ onNavigate }: HeaderProps) {
         </div>
       </div>
 
+      {/* Mobile Menu */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
@@ -124,7 +134,7 @@ export default function Header({ onNavigate }: HeaderProps) {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="lg:hidden bg-black/95 backdrop-blur-sm border-t border-gray-800 absolute top-full left-0 right-0 z-50"
+            className="lg:hidden bg-black/95 backdrop-blur-sm border-t border-gray-800 absolute top-full left-0 right-0 z-50 max-h-[80vh] overflow-y-auto"
           >
             <div className="px-4 py-4 space-y-3">
               {navItems.map((item, index) => (
@@ -134,6 +144,7 @@ export default function Header({ onNavigate }: HeaderProps) {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
                   onClick={() => handleNavigate(item.id)}
+                  onTouchStart={() => handleNavigate(item.id)}
                   className="block w-full text-left text-white hover:text-blue-400 transition-colors duration-300 font-medium py-2 px-2"
                 >
                   {item.name}
@@ -144,14 +155,14 @@ export default function Header({ onNavigate }: HeaderProps) {
               <div className="flex items-center space-x-4 pt-4 border-t border-gray-800">
                 <motion.a
                   whileTap={{ scale: 0.9 }}
-                  href="https://instagram.com" // Replace with actual link
+                  href="https://instagram.com"
                   className="text-blue-400 hover:text-blue-300 transition-colors"
                 >
                   <Instagram size={20} />
                 </motion.a>
                 <motion.a
                   whileTap={{ scale: 0.9 }}
-                  href="https://linkedin.com" // Replace with actual link
+                  href="https://linkedin.com"
                   className="text-blue-400 hover:text-blue-300 transition-colors"
                 >
                   <Linkedin size={20} />
