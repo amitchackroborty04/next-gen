@@ -8,9 +8,11 @@ import HeroSection from "@/components/ui/web/HeroSection"
 import PortfolioSection from "@/components/ui/web/PortfolioSection"
 import ServicesSection from "@/components/ui/web/ServicesSection"
 import TestimonialSection from "@/components/ui/web/TestimonialSection"
+import Software from "./Software"
 
 export default function ScrollWrapper() {
   const heroRef = useRef<HTMLDivElement>(null)
+  const softwareRef = useRef<HTMLDivElement>(null)
   const servicesRef = useRef<HTMLDivElement>(null)
   const resultsRef = useRef<HTMLDivElement>(null)
   const aboutRef = useRef<HTMLDivElement>(null)
@@ -19,6 +21,7 @@ export default function ScrollWrapper() {
   const scrollToSection = useCallback((sectionId: string) => {
     const refs = {
       hero: heroRef,
+      software: softwareRef,
       services: servicesRef,
       results: resultsRef,
       about: aboutRef,
@@ -69,6 +72,10 @@ export default function ScrollWrapper() {
 
       <div ref={heroRef} data-section="hero">
         <HeroSection />
+      </div>
+
+      <div ref={softwareRef} data-section="software">
+        <Software />
       </div>
 
       <div ref={servicesRef} data-section="services">

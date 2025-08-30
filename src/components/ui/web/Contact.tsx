@@ -5,8 +5,56 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Mail, Phone, MapPin } from "lucide-react"
+import { useForm } from "react-hook-form"
+import emailjs from "@emailjs/browser"
+import { useState } from "react"
+import { toast } from "sonner"  // ✅ sonner import
+
+type FormData = {
+  firstName: string
+  lastName?: string
+  email: string
+  subject: string
+  message: string
+  phone?: string
+}
 
 export default function ContactSection() {
+  const [loading, setLoading] = useState(false)
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<FormData>()
+
+  const onSubmit = async (data: FormData) => {
+    setLoading(true)
+
+    try {
+      await emailjs.send(
+        "service_98cnmjr", //  replace with EmailJS service ID
+        "template_ic4xadr", //  replace with EmailJS template ID
+        {
+          firstName: data.firstName,
+          lastName: data.lastName || "",
+          email: data.email,
+          subject: data.subject,
+          message: data.message,
+          phone: data.phone || "Not Provided",
+        },
+        "TS5pkjhyXe-r7YqK6" //  replace with your EmailJS public key
+      )
+
+      toast.success(" Message sent successfully!", {position:"top-right"}) //  Success Toast
+      reset()
+    } catch (err) {
+      toast.error(" Failed to send message. Please try again later.") // ⚠️ Error Toast
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <section id="contact" className="py-12 sm:py-16 md:py-20 bg-gray-900 relative">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -32,44 +80,66 @@ export default function ContactSection() {
             viewport={{ once: true }}
             className="space-y-6"
           >
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Input
-                  placeholder="First Name"
-                  className="bg-black/50 border-gray-700 text-white placeholder:text-gray-400 focus:border-blue-500"
-                />
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Input
+                    placeholder="First Name"
+                    {...register("firstName", { required: "First name is required" })}
+                    className="bg-black/50 border-gray-700 text-white placeholder:text-gray-400 focus:border-blue-500 !h-[50px]"
+                  />
+                  {errors.firstName && <p className="text-red-500 text-sm">{errors.firstName.message}</p>}
+                </div>
+                <div>
+                  <Input
+                    placeholder="Last Name (Optional)"
+                    {...register("lastName")}
+                    className="bg-black/50 border-gray-700 text-white placeholder:text-gray-400 focus:border-blue-500 !h-[50px]"
+                  />
+                </div>
               </div>
-              <div>
-                <Input
-                  placeholder="Last Name"
-                  className="bg-black/50 border-gray-700 text-white placeholder:text-gray-400 focus:border-blue-500"
-                />
-              </div>
-            </div>
 
-            <Input
-              type="email"
-              placeholder="Email Address"
-              className="bg-black/50 border-gray-700 text-white placeholder:text-gray-400 focus:border-blue-500"
-            />
+              <Input
+                type="email"
+                placeholder="Email Address"
+                {...register("email", {
+                  required: "Email is required",
+                  pattern: { value: /\S+@\S+\.\S+/, message: "Enter a valid email" },
+                })}
+                className="bg-black/50 border-gray-700 text-white placeholder:text-gray-400 focus:border-blue-500 !h-[50px]"
+              />
+              {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
 
-            <Input
-              placeholder="Subject"
-              className="bg-black/50 border-gray-700 text-white placeholder:text-gray-400 focus:border-blue-500"
-            />
+              <Input
+                placeholder="Phone (Optional)"
+                {...register("phone")}
+                className="bg-black/50 border-gray-700 text-white placeholder:text-gray-400 focus:border-blue-500 !h-[50px]"
+              />
 
-            <Textarea
-              placeholder="Tell us about your project..."
-              rows={6}
-              className="bg-black/50 border-gray-700 text-white placeholder:text-gray-400 focus:border-blue-500 resize-none"
-            />
+              <Input
+                placeholder="Subject"
+                {...register("subject", { required: "Subject is required" })}
+                className="bg-black/50 border-gray-700 text-white placeholder:text-gray-400 focus:border-blue-500 !h-[50px]"
+              />
+              {errors.subject && <p className="text-red-500 text-sm">{errors.subject.message}</p>}
 
-            <Button
-              size="lg"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-all duration-300 hover:scale-105"
-            >
-              Send Message
-            </Button>
+              <Textarea
+                placeholder="Tell us about your project..."
+                rows={6}
+                {...register("message", { required: "Message is required" })}
+                className="bg-black/50 border-gray-700 text-white placeholder:text-gray-400 focus:border-blue-500 resize-none !h-[50px]"
+              />
+              {errors.message && <p className="text-red-500 text-sm">{errors.message.message}</p>}
+
+              <Button
+                size="lg"
+                type="submit"
+                disabled={loading}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-all duration-300 hover:scale-105"
+              >
+                {loading ? "Sending..." : "Send Message"}
+              </Button>
+            </form>
           </motion.div>
 
           {/* Contact Info */}
@@ -115,8 +185,6 @@ export default function ContactSection() {
                 </motion.div>
               </div>
             </div>
-
-           
           </motion.div>
         </div>
       </div>
